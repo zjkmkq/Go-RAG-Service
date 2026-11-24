@@ -1,0 +1,36 @@
+# 复制为 config.yaml 后填入真实值：
+#   cp configs/config.example.yaml configs/config.yaml
+#
+# config.yaml 已被 .gitignore 忽略，不会提交到仓库。
+# 强烈建议通过环境变量提供密钥（下方 ${DEEPSEEK_API_KEY} 写法），
+# 不要把真实密钥写进任何会被版本控制的文件。
+
+server:
+  port: 8080
+
+database:
+  host: 127.0.0.1
+  port: 5432
+  user: postgres
+  password: postgres
+  dbname: rag_service
+
+# 本地 Ollama：负责向量嵌入
+ollama:
+  host: http://127.0.0.1:11434   # 用 127.0.0.1，避免 localhost 解析到 ::1 超时
+  llm_model: qwen3.5-0.8b:latest
+  embed_model: qwen3embed        # Qwen3-Embedding-0.6B，1024 维
+  timeout: 300s
+
+# 远端 API：负责生文（OpenAI 兼容接口均可）
+api:
+  base_url: https://api.deepseek.com/v1
+  api_key: "${DEEPSEEK_API_KEY}"  # 从环境变量读取，勿在此写真实密钥
+  llm_model: deepseek-chat
+  embed_model: ""                 # DeepSeek 无 embeddings 接口，留空
+  timeout: 60s
+
+# 策略路由：embed / generate 各自指定走 ollama 还是 api
+strategy:
+  embed: ollama                   # 嵌入走本地（DeepSeek 不提供 embeddings）
+  generate: api                   # 生文走远端
